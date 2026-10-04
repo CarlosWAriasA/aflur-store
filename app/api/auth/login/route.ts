@@ -11,7 +11,7 @@ export async function POST(request:Request){
   const accountAllowed=await limitLogin('account:'+input.data.username,10);
   const addressAllowed=await limitLogin('address:'+(request.headers.get('cf-connecting-ip')||'local'),60);
   if(!accountAllowed||!addressAllowed)return Response.json({error:'Demasiados intentos. Inténtalo de nuevo en 15 minutos.'},{status:429,headers:{'Retry-After':'900'}});
-  const user=await authDb().prepare('SELECT id,password_hash,role,active FROM users WHERE username=?').bind(input.data.username).first<{id:string;password_hash:string;role:string;active:number}>();
+  const [user]=await authDb().query<{id:string;password_hash:string;role:string;active:boolean|number}>('SELECT id,password_hash,role,active FROM users WHERE username=$1',[input.data.username]);
   const valid=verifyPassword(input.data.password,user?.password_hash||dummyHash);
   if(!valid||!user?.active||user.role!=='admin')return Response.json({error:'Usuario o contraseña incorrectos.'},{status:401});
   const token=await createSession(user.id);

@@ -22,7 +22,7 @@ El script genera una contraseña aleatoria y deja sus credenciales en un archivo
 
 Requiere Node 22.13 o superior. Instalar con `npm ci`. Iniciar la vista previa con `node scripts/run-framework.mjs dev`. Compilar con `node scripts/run-framework.mjs build`. Comprobar tipos con `node node_modules/typescript/bin/tsc --noEmit`.
 
-Productos, configuración, usuarios y sesiones usan D1; las fotos usan R2. Las migraciones `0000_oval_phalanx.sql` y `0001_material_prodigy.sql` ya se aplicaron a la base local; no volver a ejecutarlas allí. En otra instalación se aplican antes de crear usuarios. Para migraciones nuevas, generar con `node node_modules/drizzle-kit/bin.cjs generate`.
+Productos, configuración, usuarios y sesiones están adaptados a PostgreSQL en Neon; las fotos usan R2. Configura `DATABASE_URL` como secreto y aplica las migraciones antes de activar la conexión. La versión existente conserva D1 hasta ese momento. Consulta [NEON.md](NEON.md) para la activación, migraciones y creación del administrador. Las migraciones históricas D1 se conservan en `drizzle/`; las PostgreSQL están en `postgres/`.
 
 ## Catálogo
 
@@ -30,10 +30,10 @@ Filtros por categoría, audiencia, talla y precio; búsqueda; orden por precio; 
 
 Las seis prendas y fotos de Unsplash iniciales son ejemplos, no inventario real. Se indican como demostración y no generan consultas individuales de compra. Desaparecen al guardar el primer producto real.
 
-## Publicación pendiente
+## Publicación
 
-El proyecto está registrado en `.openai/hosting.json`, pero no está publicado: el componente de publicación dejó de estar disponible durante la sesión anterior. Las cuentas creadas por `scripts/create-user.mjs` son exclusivamente locales. Al publicar, deben aplicarse las migraciones y provisionarse explícitamente las cuentas autorizadas en la base de producción. `ADMIN_EMAILS` ya no se usa; no autoriza a ningún usuario.
+El catálogo está publicado en https://aflur-store.carlos-ariasalmanzar.chatgpt.site. Las cuentas creadas por `scripts/create-user.mjs` son exclusivamente locales. Para crear una cuenta de Neon utiliza `scripts/create-neon-user.mjs` después de aplicar las migraciones. La conexión real a Neon está pendiente mientras no esté configurada `DATABASE_URL`. `ADMIN_EMAILS` no autoriza a ningún usuario.
 
 ## Verificación
 
-Compilación y TypeScript sin errores. Pruebas locales del acceso inicial, cuentas inexistentes, contraseña incorrecta, roles, cuentas desactivadas, bloqueo del antiguo acceso de GPT, CSRF, lectura autorizada, logout, sesiones vencidas, revocación inmediata, cambio de contraseña y límite de intentos. También se verificaron carga de imágenes, persistencia de productos, filtros y galería.
+Compilación y TypeScript sin errores. Pruebas locales del acceso, autorización, sesiones, cambio de contraseña, límites de intentos y productos con fotos. Prueba PostgreSQL: `node --test tests/postgres.test.mjs`. Diseño revisado en 320 y 390 px para catálogo, ficha, login y administración, y en tablet de 768 px. Los formularios tienen campos de 16 px y los controles táctiles principales miden al menos 44 px.

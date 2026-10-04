@@ -44,6 +44,7 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+/tsconfig.tsbuildinfo
 /.npm-cache/
 .dev.vars*
 !.env.example
