@@ -28,7 +28,7 @@ La aplicación usa Next.js, React y TypeScript. Productos, configuración, usuar
 
 Filtros por categoría, audiencia, talla y precio; búsqueda; orden por precio; productos destacados; favoritos guardados en el dispositivo; enlaces individuales; galería de hasta ocho imágenes; elección de portada; productos disponibles, agotados u ocultos.
 
-Las prendas y fotos de Unsplash iniciales son ejemplos, no inventario real. Se indican como demostración y no generan consultas individuales de compra. Desaparecen al guardar el primer producto real.
+El catálogo inicial contiene seis referencias visuales del Instagram público de Aflur Store, con fotos locales y enlace a cada publicación. No se atribuyen marcas, precios, tallas ni disponibilidad sin confirmación. Se muestra «Consultar precio» y se permite consultar por WhatsApp. Estas referencias se sustituyen por el inventario gestionado en Neon cuando se guarda el primer producto. Consulta `INSTAGRAM-PRODUCTS.md` para las fuentes.
 
 ## Publicación
 

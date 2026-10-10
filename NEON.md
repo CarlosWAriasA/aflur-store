@@ -11,7 +11,7 @@ La integración está implementada. La conexión real requiere un proyecto Neon 
 5. Configura **DATABASE_URL como variable privada de producción** en Vercel y vuelve a desplegar. Las claves del servidor no deben tener el prefijo `NEXT_PUBLIC_`. Configura también R2 según [VERCEL.md](VERCEL.md).
 6. Comprueba el catálogo, el login, un producto real con varias fotos y la recuperación después de recargar. Los usuarios de Neon se comparten entre todas las instancias que utilicen la misma conexión.
 
-En Vercel, Neon es la base de datos de la aplicación. Sin `DATABASE_URL`, solo se muestra el catálogo de demostración y la administración no está disponible. Ante un fallo de Neon, la aplicación muestra un error y nunca cambia a otra base automáticamente. El adaptador y las migraciones históricas de D1 se conservan para importar datos de la versión anterior.
+En Vercel, Neon es la base de datos de la aplicación. Sin `DATABASE_URL`, solo se muestran las referencias iniciales de Instagram y la administración no está disponible. Ante un fallo de Neon, la aplicación muestra un error y nunca cambia a otra base automáticamente. El adaptador y las migraciones históricas de D1 se conservan para importar datos de la versión anterior.
 
 ## Datos y migración
 

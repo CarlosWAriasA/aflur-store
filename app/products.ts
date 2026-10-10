@@ -1,10 +1,15 @@
-export type Product = { id: string; name: string; category: string; audience: string; price: number; sizes: string[]; images: string[]; description: string; status: string; featured: boolean; demo?: boolean };
-const photo = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=85`;
+export type Product = { id: string; name: string; category: string; audience: string; price: number|null; sizes: string[]; images: string[]; description: string; status: string; featured: boolean; demo?: boolean; sourceUrl?: string; reference?: boolean };
 export const categories = ['Todos', 'Camisetas', 'Camisas', 'Pantalones', 'Polos', 'Shorts', 'Calzados', 'Accesorios'];
-export const samples: Product[] = [
- {id:'AF-001',name:'Camiseta esencial',category:'Camisetas',audience:'Unisex',price:850,sizes:['S','M','L','XL'],images:[photo('photo-1521572163474-6864f9cf17ab')],description:'Un básico que combina con todo. Corte cómodo para acompañarte cada día.',status:'Disponible',featured:true,demo:true},
- {id:'AF-002',name:'Sneakers clásicos',category:'Calzados',audience:'Unisex',price:2950,sizes:['38','39','40','41','42'],images:[photo('photo-1549298916-b41d501d3772'),photo('photo-1600269452121-4f2416e55c28')],description:'Tu próximo par favorito. Silueta clásica para tus looks de todos los días.',status:'Disponible',featured:true,demo:true},
- {id:'AF-003',name:'Camisa de lino',category:'Camisas',audience:'Hombre',price:1650,sizes:['S','M','L'],images:[photo('photo-1598033129183-c4f50c736f10')],description:'Una camisa versátil y fácil de combinar. Consulta los detalles por WhatsApp.',status:'Disponible',featured:false,demo:true},
- {id:'AF-004',name:'Denim de todos los días',category:'Pantalones',audience:'Hombre',price:1850,sizes:['30','32','34','36'],images:[photo('photo-1542272604-787c3835535d')],description:'Denim de corte clásico para crear tus combinaciones favoritas.',status:'Disponible',featured:false,demo:true},
+// Public Instagram references: photos and visible details only. Stock, price and sizes are unconfirmed.
+function instagram(id:string,name:string,category:string,photo:string,reel:string,description:string,featured=false):Product{
+ return {id,name,category,audience:'Hombre',price:null,sizes:[],images:[`/products/instagram/${photo}.jpg`],description,status:'Consultar disponibilidad',featured,reference:true,sourceUrl:`https://www.instagram.com/aflurstore/reel/${reel}/`};
+}
+export const samples:Product[]=[
+ instagram('IG-001','Polo crema con cuello burdeos','Polos','polo-crema-burdeos','Dd_xkvqxB0u','Polo de manga corta en tono crema, cuello y mangas con ribetes burdeos. Referencia publicada por Aflur Store el 2 de octubre de 2026.',true),
+ instagram('IG-002','Camisa negra con bordados','Camisas','camisa-negra-bordada','Dd_wv74xzhZ','Camisa negra de manga corta con motivos bordados decorativos en el frente. Referencia publicada por Aflur Store el 2 de octubre de 2026.',true),
+ instagram('IG-003','Polo crema con textura','Polos','polo-crema-textura','Dd_vdkUR_qd','Polo de manga corta en tono crema, tejido con textura y ribetes en contraste. Referencia publicada por Aflur Store el 2 de octubre de 2026.',true),
+ instagram('IG-004','Camisa Paradise','Camisas','camisa-paradise','DdKc49pByV_','Camisa clara de manga corta con la palabra Paradise y un estampado tropical en la parte inferior. Referencia publicada por Aflur Store el 11 de septiembre de 2026.'),
+ instagram('IG-005','Camisa con estampado artístico','Camisas','camisa-estampado-artistico','DdKbo6th-Rm','Camisa de manga corta con estampado de una escena artística y palmeras en tonos azules y tierra. Referencia publicada por Aflur Store el 11 de septiembre de 2026.'),
+ instagram('IG-006','Camisa con estampado de soles','Camisas','camisa-soles','DdKa1mOhPoN','Camisa de manga corta en tonos crema y marrón con motivos de soles y flores. Referencia publicada por Aflur Store el 11 de septiembre de 2026.'),
 ];
-export const money = (n: number) => new Intl.NumberFormat('es-DO',{style:'currency',currency:'DOP',maximumFractionDigits:0}).format(n);
+export const money=(n:number|null)=>n===null?'Consultar precio':new Intl.NumberFormat('es-DO',{style:'currency',currency:'DOP',maximumFractionDigits:0}).format(n);

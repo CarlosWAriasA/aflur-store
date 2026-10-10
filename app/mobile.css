@@ -112,6 +112,7 @@ button,input,select,textarea{min-width:0}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.product-photo img,.quick-view{transition:none}}
 
 .hero-photo{background:#050505}
+.source-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;text-decoration:underline;text-underline-offset:4px}
 .hero-photo img{object-fit:contain;object-position:center}
 .store-brands{padding:27px 0 23px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:24px}
 .store-brands>span{font-size:10px;letter-spacing:1.4px;color:var(--muted);line-height:1.8}

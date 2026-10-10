@@ -10,6 +10,6 @@ export async function allProducts(includeHidden=false):Promise<Product[]>{
   db.query<{value:string}>("SELECT value FROM settings WHERE key = 'initialized'"),
  ]);
  const result=data.map(p=>typeof p.data==='string'?JSON.parse(p.data) as Product:p.data);
- return (result.length||initialized.length?result:samples).filter(p=>includeHidden||p.status!=='Oculto');
+ return (result.length||initialized.length||includeHidden?result:samples).filter(p=>includeHidden||p.status!=='Oculto');
 }
 export async function whatsapp(){const [row]=await database().query<{value:string}>("SELECT value FROM settings WHERE key = 'whatsapp'");return row?.value||'18293041914';}

@@ -29,7 +29,7 @@ En **Settings > Environment Variables**, agrega estas variables para Production 
 
 Nunca uses `NEXT_PUBLIC_` para estas variables. Para desarrollo, copia `.env.example` a `.env.local` y completa los valores allí. No subas ese archivo a Git.
 
-Sin `DATABASE_URL`, el catálogo muestra productos claramente identificados como ejemplos. El administrador necesita la base real: aplica `npm run db:migrate` y luego `npm run db:create-user -- admin admin` desde una terminal que tenga `DATABASE_URL`. La contraseña generada se guarda en `.sites-runtime/neon-admin.txt`. Consulta [NEON.md](NEON.md).
+Sin `DATABASE_URL`, el catálogo muestra referencias visuales de Instagram con precio, tallas y disponibilidad por consultar. El administrador necesita la base real: aplica `npm run db:migrate` y luego `npm run db:create-user -- admin admin` desde una terminal que tenga `DATABASE_URL`. La contraseña generada se guarda en `.sites-runtime/neon-admin.txt`. Consulta [NEON.md](NEON.md).
 
 ## Imágenes en Cloudflare R2
 
