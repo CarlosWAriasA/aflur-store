@@ -1,12 +1,10 @@
 export type Product = { id: string; name: string; category: string; audience: string; price: number; sizes: string[]; images: string[]; description: string; status: string; featured: boolean; demo?: boolean };
 const photo = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=85`;
-export const categories = ['Todos', 'Camisetas', 'Camisas', 'Pantalones', 'Vestidos', 'Calzados', 'Accesorios'];
+export const categories = ['Todos', 'Camisetas', 'Camisas', 'Pantalones', 'Polos', 'Shorts', 'Calzados', 'Accesorios'];
 export const samples: Product[] = [
- {id:'AF-001',name:'Camiseta esencial',category:'Camisetas',audience:'Unisex',price:850,sizes:['S','M','L','XL'],images:[photo('photo-1521572163474-6864f9cf17ab'),photo('photo-1503341504253-dff4815485f1')],description:'Un básico que combina con todo. Corte cómodo para acompañarte cada día.',status:'Disponible',featured:true,demo:true},
+ {id:'AF-001',name:'Camiseta esencial',category:'Camisetas',audience:'Unisex',price:850,sizes:['S','M','L','XL'],images:[photo('photo-1521572163474-6864f9cf17ab')],description:'Un básico que combina con todo. Corte cómodo para acompañarte cada día.',status:'Disponible',featured:true,demo:true},
  {id:'AF-002',name:'Sneakers clásicos',category:'Calzados',audience:'Unisex',price:2950,sizes:['38','39','40','41','42'],images:[photo('photo-1549298916-b41d501d3772'),photo('photo-1600269452121-4f2416e55c28')],description:'Tu próximo par favorito. Silueta clásica para tus looks de todos los días.',status:'Disponible',featured:true,demo:true},
  {id:'AF-003',name:'Camisa de lino',category:'Camisas',audience:'Hombre',price:1650,sizes:['S','M','L'],images:[photo('photo-1598033129183-c4f50c736f10')],description:'Una camisa versátil y fácil de combinar. Consulta los detalles por WhatsApp.',status:'Disponible',featured:false,demo:true},
- {id:'AF-004',name:'Denim de todos los días',category:'Pantalones',audience:'Mujer',price:1850,sizes:['26','28','30','32'],images:[photo('photo-1542272604-787c3835535d')],description:'Denim de corte clásico para crear tus combinaciones favoritas.',status:'Disponible',featured:false,demo:true},
- {id:'AF-005',name:'Vestido ligero',category:'Vestidos',audience:'Mujer',price:2250,sizes:['S','M','L'],images:[photo('photo-1515372039744-b8f02a3ae446')],description:'Una pieza fresca para esos días que piden algo especial.',status:'Disponible',featured:true,demo:true},
- {id:'AF-006',name:'Bolso cotidiano',category:'Accesorios',audience:'Mujer',price:1450,sizes:['Única'],images:[photo('photo-1548036328-c9fa89d128fa')],description:'Lleva tus esenciales contigo. Completa tu look con tu accesorio favorito.',status:'Disponible',featured:false,demo:true}
+ {id:'AF-004',name:'Denim de todos los días',category:'Pantalones',audience:'Hombre',price:1850,sizes:['30','32','34','36'],images:[photo('photo-1542272604-787c3835535d')],description:'Denim de corte clásico para crear tus combinaciones favoritas.',status:'Disponible',featured:false,demo:true},
 ];
 export const money = (n: number) => new Intl.NumberFormat('es-DO',{style:'currency',currency:'DOP',maximumFractionDigits:0}).format(n);

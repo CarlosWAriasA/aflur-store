@@ -28,7 +28,7 @@ La aplicación usa Next.js, React y TypeScript. Productos, configuración, usuar
 
 Filtros por categoría, audiencia, talla y precio; búsqueda; orden por precio; productos destacados; favoritos guardados en el dispositivo; enlaces individuales; galería de hasta ocho imágenes; elección de portada; productos disponibles, agotados u ocultos.
 
-Las seis prendas y fotos de Unsplash iniciales son ejemplos, no inventario real. Se indican como demostración y no generan consultas individuales de compra. Desaparecen al guardar el primer producto real.
+Las prendas y fotos de Unsplash iniciales son ejemplos, no inventario real. Se indican como demostración y no generan consultas individuales de compra. Desaparecen al guardar el primer producto real.
 
 ## Publicación
 
