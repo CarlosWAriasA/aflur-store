@@ -5,13 +5,13 @@ La integración está implementada. La conexión real requiere un proyecto Neon 
 ## Activación
 
 1. Crea un proyecto en [Neon](https://console.neon.tech) y copia la cadena PostgreSQL desde **Connect**. Elige una región cercana al sitio.
-2. En `web/.dev.vars`, agrega `DATABASE_URL="<cadena de conexión de Neon>"`. Este archivo está excluido de Git. También puedes proporcionar la variable directamente al proceso.
+2. En `.env.local`, dentro de la aplicación, agrega `DATABASE_URL="<cadena de conexión de Neon>"`. Este archivo está excluido de Git. También puedes proporcionar la variable directamente al proceso.
 3. Ejecuta `node scripts/migrate-neon.mjs`. Aplica las migraciones de `postgres/` en transacciones, registra sus checksums y verifica las tablas. Puede repetirse; no modifica migraciones ya aplicadas.
 4. Crea una cuenta autorizada con `node scripts/create-neon-user.mjs admin admin`. Genera una contraseña aleatoria y la guarda en `.sites-runtime/neon-admin.txt`, excluido de Git. No sobrescribe usuarios. Alternativamente, para conservar las cuentas de la vista previa, ejecuta `node scripts/import-local-to-neon.mjs --local` después de migrar.
-5. Configura **DATABASE_URL como secreto de producción** en Sites y vuelve a publicar. Las claves del servidor no deben tener el prefijo `NEXT_PUBLIC_`.
+5. Configura **DATABASE_URL como variable privada de producción** en Vercel y vuelve a desplegar. Las claves del servidor no deben tener el prefijo `NEXT_PUBLIC_`. Configura también R2 según [VERCEL.md](VERCEL.md).
 6. Comprueba el catálogo, el login, un producto real con varias fotos y la recuperación después de recargar. Los usuarios de Neon se comparten entre todas las instancias que utilicen la misma conexión.
 
-Cuando se complete la activación y se verifique que los datos actuales se hayan importado, puede retirarse el binding D1 de `.openai/hosting.json`. Hasta entonces, el sitio conserva D1 únicamente cuando no hay `DATABASE_URL`. Una conexión Neon configurada siempre es la fuente de datos; ante un fallo de Neon, la aplicación muestra un error y nunca cambia a otra base automáticamente.
+En Vercel, Neon es la base de datos de la aplicación. Sin `DATABASE_URL`, solo se muestra el catálogo de demostración y la administración no está disponible. Ante un fallo de Neon, la aplicación muestra un error y nunca cambia a otra base automáticamente. El adaptador y las migraciones históricas de D1 se conservan para importar datos de la versión anterior.
 
 ## Datos y migración
 

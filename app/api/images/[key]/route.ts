@@ -1,2 +1,10 @@
-import {env} from 'cloudflare:workers';
-export async function GET(request:Request,{params}:{params:Promise<{key:string}>}){const {key}=await params;if(!/^[a-f0-9-]+\.(jpg|png|webp)$/.test(key))return new Response('No encontrada',{status:404});try{const object=await env.BUCKET?.get(key);if(!object)return new Response('No encontrada',{status:404});const headers=new Headers({'Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'});object.writeHttpMetadata(headers);return new Response(object.body,{headers});}catch{return new Response('No disponible',{status:503});}}
+import {imageStorage} from '../../../../lib/r2.mjs';
+import {imageKey} from '../../../../lib/image-format.mjs';
+export const runtime='nodejs';
+export const dynamic='force-dynamic';
+export async function GET(request:Request,{params}:{params:Promise<{key:string}>}){
+ const {key}=await params;
+ if(!imageKey.test(key))return new Response('No encontrada',{status:404});
+ try{return new Response(null,{status:302,headers:{Location:await imageStorage().imageUrl(key),'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}
+ catch{return new Response('No disponible',{status:503});}
+}

@@ -9,7 +9,8 @@ export async function POST(request:Request){
   if(Number(request.headers.get('content-length'))>4096)return Response.json({error:'Solicitud demasiado grande.'},{status:413});
   const input=schema.safeParse(await request.json());if(!input.success)return Response.json({error:'Usuario o contraseña incorrectos.'},{status:401});
   const accountAllowed=await limitLogin('account:'+input.data.username,10);
-  const addressAllowed=await limitLogin('address:'+(request.headers.get('cf-connecting-ip')||'local'),60);
+  const address=request.headers.get('x-forwarded-for')?.split(',')[0].trim()||'local';
+  const addressAllowed=await limitLogin('address:'+address,60);
   if(!accountAllowed||!addressAllowed)return Response.json({error:'Demasiados intentos. Inténtalo de nuevo en 15 minutos.'},{status:429,headers:{'Retry-After':'900'}});
   const [user]=await authDb().query<{id:string;password_hash:string;role:string;active:boolean|number}>('SELECT id,password_hash,role,active FROM users WHERE username=$1',[input.data.username]);
   const valid=verifyPassword(input.data.password,user?.password_hash||dummyHash);

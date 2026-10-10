@@ -1,3 +1,16 @@
-import {env} from 'cloudflare:workers';
 import {isAdmin,sameOrigin} from '../../server';
-export async function POST(request:Request){if(!sameOrigin(request)||!await isAdmin())return Response.json({error:'Acceso denegado.'},{status:403});try{if(!env.BUCKET)throw Error('Almacenamiento no disponible');if(Number(request.headers.get('content-length'))>6*1024*1024)return Response.json({error:'La imagen supera los 5 MB.'},{status:413});const form=await request.formData();const file=form.get('file');if(!(file instanceof File)||!file.size||file.size>5*1024*1024)return Response.json({error:'Selecciona una imagen de hasta 5 MB.'},{status:400});const bytes=new Uint8Array(await file.arrayBuffer());let ext='';if(bytes[0]===255&&bytes[1]===216&&bytes[2]===255)ext='jpg';if(bytes.slice(0,8).join(',')==='137,80,78,71,13,10,26,10')ext='png';if(new TextDecoder().decode(bytes.slice(0,4))==='RIFF'&&new TextDecoder().decode(bytes.slice(8,12))==='WEBP')ext='webp';if(!ext)return Response.json({error:'Solo se admiten imágenes JPG, PNG y WebP.'},{status:400});const key=crypto.randomUUID()+'.'+ext;await env.BUCKET.put(key,bytes,{httpMetadata:{contentType:ext==='jpg'?'image/jpeg':`image/${ext}`}});return Response.json({url:'/api/images/'+key});}catch(e){console.error('upload',e);return Response.json({error:'No se pudo subir la imagen. Inténtalo de nuevo.'},{status:503});}}
+import {imageStorage} from '../../../lib/r2.mjs';
+import {imageTypes,maxImageBytes} from '../../../lib/image-format.mjs';
+import {z} from 'zod';
+export const runtime='nodejs';
+const input=z.object({contentType:z.enum(['image/jpeg','image/png','image/webp']),size:z.number().int().min(1).max(maxImageBytes)});
+export async function POST(request:Request){
+ if(!sameOrigin(request)||!await isAdmin())return Response.json({error:'Acceso denegado.'},{status:403});
+ if(Number(request.headers.get('content-length'))>2048)return Response.json({error:'Solicitud demasiado grande.'},{status:413});
+ try{
+  const {contentType,size}=input.parse(await request.json());
+  const key=crypto.randomUUID()+'.'+imageTypes[contentType];
+  const uploadUrl=await imageStorage().signUpload(key,contentType,size);
+  return Response.json({key,uploadUrl},{headers:{'Cache-Control':'no-store'}});
+ }catch(error){return Response.json({error:error instanceof z.ZodError?'Selecciona una imagen JPG, PNG o WebP de hasta 5 MB.':'No se pudo preparar la subida. Comprueba la configuración de R2.'},{status:error instanceof z.ZodError?400:503});}
+}
