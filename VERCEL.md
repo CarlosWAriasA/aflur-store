@@ -48,7 +48,7 @@ Crear la base en Neon no aplica automáticamente las migraciones ni crea un admi
 1. La administración pide una autorización a `/api/upload`. Vercel comprueba la sesión y el origen, valida el tipo y el tamaño declarado y firma un identificador aleatorio. El API Secret se queda en el servidor.
 2. El navegador envía el archivo directamente a la API de Cloudinary con la firma. Solo se admiten JPG, PNG o WebP; se impide sobrescribir el identificador. Cloudinary verifica el formato real.
 3. `/api/upload/complete` consulta los metadatos directamente en Cloudinary y verifica el identificador, tipo de recurso, formato, dimensiones y tamaño real. Si excede 5 MB o no corresponde al formato esperado, se elimina y no se añade al producto.
-4. Neon guarda referencias estables `/api/images/<clave>`. Esa ruta redirige a la CDN de Cloudinary con formato y calidad automáticos y un ancho máximo de 1600 px. Los archivos no pasan por las funciones de Vercel.
+4. Neon guarda referencias estables `/api/images/<clave>`. Esa ruta redirige a la CDN de Cloudinary con formato automático, calidad alta y un ancho máximo de 2560 px sin ampliar archivos pequeños. El visor de pantalla completa solicita el archivo original. Los archivos no pasan por las funciones de Vercel.
 
 El límite es ocho fotos por producto y 5 MB por foto. Una foto subida pero no guardada en ningún producto permanece en Cloudinary; puede eliminarse desde su Media Library. Borrar un producto retira sus referencias en Neon, pero no borra automáticamente sus archivos de Cloudinary, para no eliminar fotos que otro producto pueda utilizar.
 
