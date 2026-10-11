@@ -72,6 +72,9 @@ test('delivery URLs stay in the configured cloud and fixed optimized image path'
  const {storage}=fixture();
  assert.equal(await storage.imageUrl(key),`https://res.cloudinary.com/test-cloud/image/upload/c_limit,w_2560/f_auto/q_auto:best/${id}.png`);
  assert.equal(await storage.imageUrl(key,true),`https://res.cloudinary.com/test-cloud/image/upload/${id}.png`);
+ assert.equal(await storage.imageUrl(key,false,'card'),`https://res.cloudinary.com/test-cloud/image/upload/c_limit,w_800/f_auto/q_auto:best/${id}.png`);
+ assert.equal(await storage.imageUrl(key,false,'thumb'),`https://res.cloudinary.com/test-cloud/image/upload/c_limit,w_160/f_auto/q_auto:best/${id}.png`);
+ assert.equal(await storage.imageUrl(key,false,'arbitrary'),await storage.imageUrl(key));
  await assert.rejects(storage.imageUrl('../secret'));
  assert.throws(()=>createStorage({...credentials,cloudName:'evil.example/path'}));
  assert.throws(()=>createStorage({...credentials,apiSecret:''}));

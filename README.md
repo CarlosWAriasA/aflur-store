@@ -26,6 +26,8 @@ La aplicación usa Next.js, React y TypeScript. Productos, configuración, usuar
 
 La administración admite productos de hombre, mujer y unisex, categorías como vestidos, blusas, faldas y conjuntos, y ofertas con un precio menor al normal. El precio de oferta se utiliza también en filtros, ordenación y consultas por WhatsApp. `salePrice` es opcional y se guarda en el JSONB existente: no requiere otra migración. Las fotos se pueden ordenar con arrastre o flechas, y la primera es la portada. La vista previa muestra el borrador sin publicarlo; los cambios se publican al guardar el producto. El acceso Mujer y el texto general del banner se adaptan cuando aparece inventario femenino.
 
+El catálogo y la administración consultan 12 productos por página mediante `LIMIT/OFFSET` en Neon. Búsqueda, categoría, público, talla, favoritos y precio se filtran antes de paginar; las ofertas cuentan como precio vigente. Los totales y opciones de filtros abarcan todo el inventario. La búsqueda espera 200 ms y cancela consultas anteriores para evitar resultados fuera de orden. Los enlaces compartidos consultan el producto por ID sin depender de su página. Las tarjetas solicitan fotos de hasta 800 px y las miniaturas de hasta 160 px, con calidad alta y sin ampliar originales pequeños; pantalla completa mantiene el original.
+
 ## Catálogo
 
 Filtros por categoría, audiencia, talla y precio; búsqueda; orden por precio; productos destacados; favoritos guardados en el dispositivo; enlaces individuales; galería de hasta ocho imágenes; elección de portada; productos disponibles, agotados u ocultos.

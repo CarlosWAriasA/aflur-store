@@ -1,9 +1,10 @@
-import {allProducts,database,isAdmin,sameOrigin,whatsapp} from '../../server';
+import {database,isAdmin,sameOrigin,whatsapp} from '../../server';
+import {listOptions,productList} from '../../../lib/product-list.mjs';
 import {productSchema as schema} from '../../../lib/product-schema.mjs';
 import {z} from 'zod';
 import {saveProduct,deleteProduct} from '../../../db/products.mjs';
 export const dynamic='force-dynamic';
-export async function GET(){if(!await isAdmin())return Response.json({error:'Acceso de administrador requerido.'},{status:403});try{return Response.json({products:await allProducts(true),whatsapp:await whatsapp()});}catch(e){console.error(e);return Response.json({error:'No se pudo cargar la administración.'},{status:503});}}
+export async function GET(request:Request){if(!await isAdmin())return Response.json({error:'Acceso de administrador requerido.'},{status:403});try{const options=listOptions(new URL(request.url).searchParams);const [result,phone]=await Promise.all([productList(database(),options,true),whatsapp()]);return Response.json({...result,whatsapp:phone},{headers:{'Cache-Control':'private, no-store'}});}catch(e){return Response.json({error:e instanceof z.ZodError?'Filtros inválidos.':'No se pudo cargar la administración.'},{status:e instanceof z.ZodError?400:503});}}
 export async function POST(request:Request){
  if(!sameOrigin(request)||!await isAdmin())return Response.json({error:'Acceso denegado.'},{status:403});
  try{

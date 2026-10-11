@@ -3,6 +3,7 @@ export {categories,audiences} from '../lib/product-options.mjs';
 export const onSale=(product:Product)=>typeof product.salePrice==='number'&&product.salePrice>0&&product.price!==null&&product.salePrice<product.price;
 export const sellingPrice=(product:Product)=>onSale(product)?product.salePrice!:product.price;
 export const discount=(product:Product)=>onSale(product)?Math.round((1-product.salePrice!/product.price!)*100):0;
+export const productImage=(src:string|undefined,variant:'card'|'thumb')=>src?.startsWith('/api/images/')?`${src}?variant=${variant}`:src||'/placeholder.svg';
 // Public Instagram references: photos and visible details only. Stock, price and sizes are unconfirmed.
 function instagram(id:string,name:string,category:string,photo:string,reel:string,description:string,featured=false):Product{
  return {id,name,category,audience:'Hombre',price:null,sizes:[],images:[`/products/instagram/${photo}.jpg`],description,status:'Consultar disponibilidad',featured,reference:true,sourceUrl:`https://www.instagram.com/aflurstore/reel/${reel}/`};
