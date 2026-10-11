@@ -1,0 +1,10 @@
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import {X,MessageCircle} from 'lucide-react';
+import {Product} from '../products';
+import ProductPrice from '../product-price';
+export default function ProductPreview({product,onClose}:{product:Product;onClose:()=>void}){
+ const dialog=useRef<HTMLDialogElement>(null),[index,setIndex]=useState(0);
+ useEffect(()=>{const element=dialog.current,previous=document.activeElement as HTMLElement|null;element?.showModal();return()=>{element?.close();previous?.focus();};},[]);
+ return <dialog className="product-preview" ref={dialog} aria-label="Vista previa del producto" onCancel={event=>{event.preventDefault();onClose();}}><header className="preview-heading"><div><strong>Vista previa</strong><span>Los cambios aún no se han guardado.</span></div><button type="button" autoFocus onClick={onClose} aria-label="Cerrar vista previa"><X/></button></header><section className="product-modal"><div className="gallery"><div className="gallery-main"><img src={product.images[index]||'/placeholder.svg'} alt={product.name||'Foto del producto'}/></div><div className="thumbnails">{product.images.map((src,i)=><button type="button" key={src} className={index===i?'active':''} aria-label={`Vista previa: foto ${i+1}`} onClick={()=>setIndex(i)}><img src={src} alt=""/></button>)}</div></div><div className="detail"><span className="eyebrow">{product.category} / {product.audience}</span><h2>{product.name||'Nombre del producto'}</h2><div className="detail-price"><ProductPrice product={{...product,price:product.price||null}}/></div><p className="stock"><span/>{product.status}</p>{product.status==='Oculto'&&<p>Este producto estará oculto en el catálogo.</p>}<p>{product.description||'Aquí aparecerá la descripción del producto.'}</p><hr/><label>Tallas disponibles</label><div className="size-options">{product.sizes.map(size=><span key={size}>{size}</span>)}</div><button type="button" className="button wide" disabled><MessageCircle size={18}/> Consultar por WhatsApp</button><div className="capture-tip">Código: <strong>{product.id}</strong></div></div></section></dialog>;
+}

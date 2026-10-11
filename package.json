@@ -15,7 +15,7 @@
     "db:migrate": "node scripts/migrate-neon.mjs",
     "db:create-user": "node scripts/create-neon-user.mjs",
     "db:import:local": "node scripts/import-local-to-neon.mjs --local",
-    "test:postgres": "node --test tests/postgres.test.mjs",
+    "test:postgres": "node --test tests/postgres.test.mjs tests/product-schema.test.mjs",
     "test:storage": "node --test tests/storage.test.mjs tests/cloudinary-usage.test.mjs"
   },
   "dependencies": {

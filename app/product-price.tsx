@@ -1,0 +1,2 @@
+import {Product,money,onSale,sellingPrice,discount} from './products';
+export default function ProductPrice({product}:{product:Product}){return <span className="product-price"><strong>{money(sellingPrice(product))}</strong>{onSale(product)&&<><del aria-label={`Precio anterior ${money(product.price)}`}>{money(product.price)}</del><span className="sale-saving">{discount(product)>0?`−${discount(product)}%`:'Oferta'}</span></>}</span>;}

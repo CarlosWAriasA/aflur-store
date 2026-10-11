@@ -34,13 +34,14 @@ test('PostgreSQL migration, Neon HTTP driver, atomic inventory and authorization
    const sql=await readFile(new URL(`../postgres/${entry.tag}.sql`,import.meta.url),'utf8');
    await db.transaction(sql.split('--> statement-breakpoint').map(text=>text.trim()).filter(Boolean).map(text=>({text})));
   }
-  const product={id:'AF-TEST',name:"Camiseta ' especial",category:'Camisetas',audience:'Unisex',price:1250,sizes:['S','M'],images:['/api/images/a.jpg','/api/images/b.webp'],description:'',status:'Disponible',featured:false};
+  const product={id:'AF-TEST',name:"Camiseta ' especial",category:'Camisetas',audience:'Mujer',price:1250,salePrice:999.5,sizes:['S','M'],images:['/api/images/a.jpg','/api/images/b.webp'],description:'',status:'Disponible',featured:false};
   await saveProduct(db,product);
   assert.deepEqual((await db.query('SELECT data FROM products WHERE id=$1',[product.id]))[0].data,product);
   assert.deepEqual(await db.query('SELECT object_key FROM product_images ORDER BY position'),[{object_key:'a.jpg'},{object_key:'b.webp'}]);
-  await saveProduct(db,{...product,images:product.images.toReversed(),status:'Oculto'});
+  await saveProduct(db,{...product,salePrice:null,images:product.images.toReversed(),status:'Oculto'});
   assert.equal((await db.query('SELECT object_key FROM product_images ORDER BY position'))[0].object_key,'b.webp');
   assert.equal((await db.query('SELECT data FROM products'))[0].data.status,'Oculto');
+  assert.equal((await db.query('SELECT data FROM products'))[0].data.salePrice,null);
   await assert.rejects(db.transaction([{text:'UPDATE products SET data=$1 WHERE id=$2',values:[JSON.stringify({...product,name:'Must roll back'}),product.id]},{text:'INSERT INTO product_images (product_id,position,object_key) VALUES ($1,0,$2)',values:['missing-product','bad.jpg']}]));
   assert.equal((await db.query('SELECT data FROM products'))[0].data.name,product.name);
   await db.query('INSERT INTO users (id,username,password_hash,role,active,created_at) VALUES ($1,$2,$3,$4,$5,$6)',['test-user',"admin' OR 1=1 --",'hash','admin',true,Date.now()]);

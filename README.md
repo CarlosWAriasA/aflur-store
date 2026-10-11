@@ -24,6 +24,8 @@ Requiere Node 22.x (22.13 o superior). Instalar con `npm ci`. Copia `.env.exampl
 
 La aplicación usa Next.js, React y TypeScript. Productos, configuración, usuarios y sesiones se almacenan en PostgreSQL en Neon; las fotos usan Cloudinary con subidas firmadas y entrega optimizada. Configura `DATABASE_URL` y aplica las migraciones antes de activar la administración. Consulta [NEON.md](NEON.md) para la activación y creación del administrador. Las migraciones históricas D1 se conservan en `drizzle/`; las PostgreSQL están en `postgres/`.
 
+La administración admite productos de hombre, mujer y unisex, categorías como vestidos, blusas, faldas y conjuntos, y ofertas con un precio menor al normal. El precio de oferta se utiliza también en filtros, ordenación y consultas por WhatsApp. `salePrice` es opcional y se guarda en el JSONB existente: no requiere otra migración. Las fotos se pueden ordenar con arrastre o flechas, y la primera es la portada. La vista previa muestra el borrador sin publicarlo; los cambios se publican al guardar el producto. El acceso Mujer y el texto general del banner se adaptan cuando aparece inventario femenino.
+
 ## Catálogo
 
 Filtros por categoría, audiencia, talla y precio; búsqueda; orden por precio; productos destacados; favoritos guardados en el dispositivo; enlaces individuales; galería de hasta ocho imágenes; elección de portada; productos disponibles, agotados u ocultos.

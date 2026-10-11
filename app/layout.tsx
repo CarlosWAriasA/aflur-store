@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./mobile.css";
+import "./product-editor.css";
 
 export const metadata: Metadata = {
-  title: "Aflur Store | Ropa de hombre · Pull&Bear y Zara",
-  description: "Ropa y calzado para hombre en Aflur Store. Prendas de Pull&Bear y Zara por categoría, talla y precio. Consulta por WhatsApp.",
+  title: "Aflur Store | Ropa y calzado · Pull&Bear y Zara",
+  description: "Ropa y calzado en Aflur Store. Prendas de Pull&Bear y Zara por categoría, talla y precio. Consulta por WhatsApp.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
