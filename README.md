@@ -8,7 +8,7 @@ Catálogo público en español, adaptable al móvil, con administración de prod
 
 Las contraseñas se guardan como hashes scrypt con sal aleatoria (N=16384, r=8, p=5), siguiendo una de las configuraciones documentadas por [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#scrypt). Los tokens de sesión se guardan como hashes SHA-256 en `sessions`, expiran a las 12 horas y se entregan en cookies HttpOnly, SameSite=Lax y Secure en HTTPS. La autorización se comprueba en el servidor en cada petición; desactivar una cuenta revoca su acceso inmediatamente. El cambio de contraseña invalida todas sus sesiones. Se limita el número de intentos de acceso y se comprueba el origen en las operaciones de escritura.
 
-No existe una contraseña fija en el código. Crea la cuenta de Neon después de aplicar las migraciones. Puedes cambiarla en Administración > Cambiar contraseña.
+No existe una contraseña fija en el código. Crea la cuenta de Neon después de aplicar las migraciones. La opción de cambiar contraseña desde Administración está deshabilitada por ahora.
 
 Para agregar una cuenta autorizada en Neon:
 
