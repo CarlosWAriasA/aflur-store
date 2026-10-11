@@ -36,10 +36,13 @@ export default function Admin({username}:{username:string}){
   try{for(const file of Array.from(files)){
    if(file.size>5*1024*1024)throw Error(`${file.name}: el tamaño máximo es 5 MB.`);
    const prepared=await fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentType:file.type,size:file.size})});
-   const signed=await prepared.json() as {error?:string;key:string;uploadUrl:string};
+   const signed=await prepared.json() as {error?:string;key:string;uploadUrl:string;fields:Record<string,string|number>};
    if(!prepared.ok)throw Error(signed.error||'No se pudo preparar la imagen.');
-   const uploaded=await fetch(signed.uploadUrl,{method:'PUT',headers:{'Content-Type':file.type},body:file});
-   if(!uploaded.ok)throw Error('No se pudo subir la imagen. Inténtalo de nuevo.');
+   const form=new FormData();
+   for(const [name,value] of Object.entries(signed.fields))form.set(name,String(value));
+   form.set('file',file);
+   const uploaded=await fetch(signed.uploadUrl,{method:'POST',body:form});
+   if(!uploaded.ok)throw Error('Cloudinary no pudo recibir la imagen. Comprueba tu conexión o inténtalo de nuevo.');
    const completed=await fetch('/api/upload/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:signed.key})});
    const result=await completed.json() as {error?:string;url:string};
    if(!completed.ok)throw Error(result.error||'No se pudo validar la imagen.');

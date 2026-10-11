@@ -22,7 +22,7 @@ El script genera una contraseña aleatoria y deja sus credenciales en un archivo
 
 Requiere Node 22.x (22.13 o superior). Instalar con `npm ci`. Copia `.env.example` a `.env.local` y completa las variables privadas. Inicia con `npm run dev`, compila con `npm run build` y ejecuta la compilación con `npm start`. Comprobar tipos con `node node_modules/typescript/bin/tsc --noEmit`.
 
-La aplicación usa Next.js, React y TypeScript. Productos, configuración, usuarios y sesiones se almacenan en PostgreSQL en Neon; las fotos usan R2 mediante su API S3. Configura `DATABASE_URL` y aplica las migraciones antes de activar la administración. Consulta [NEON.md](NEON.md) para la activación y creación del administrador. Las migraciones históricas D1 se conservan en `drizzle/`; las PostgreSQL están en `postgres/`.
+La aplicación usa Next.js, React y TypeScript. Productos, configuración, usuarios y sesiones se almacenan en PostgreSQL en Neon; las fotos usan Cloudinary con subidas firmadas y entrega optimizada. Configura `DATABASE_URL` y aplica las migraciones antes de activar la administración. Consulta [NEON.md](NEON.md) para la activación y creación del administrador. Las migraciones históricas D1 se conservan en `drizzle/`; las PostgreSQL están en `postgres/`.
 
 ## Catálogo
 
@@ -32,8 +32,8 @@ El catálogo inicial contiene seis referencias visuales del Instagram público d
 
 ## Publicación
 
-El destino actual es Vercel: consulta [VERCEL.md](VERCEL.md) para importar el repositorio, configurar Neon y R2, y corregir los ajustes de compilación. Sin credenciales de Neon, el catálogo muestra ejemplos y la administración permanece sin activar. La publicación anterior en Sites y sus cuentas locales son independientes del nuevo despliegue. `ADMIN_EMAILS` no autoriza a ningún usuario.
+El destino actual es Vercel: consulta [VERCEL.md](VERCEL.md) para importar el repositorio, configurar Neon y Cloudinary, y corregir los ajustes de compilación. Sin credenciales de Neon, el catálogo muestra ejemplos y la administración permanece sin activar. La publicación anterior en Sites y sus cuentas locales son independientes del nuevo despliegue. `ADMIN_EMAILS` no autoriza a ningún usuario.
 
 ## Verificación
 
-Pruebas PostgreSQL: `npm run test:postgres`. Pruebas de subida y lectura de imágenes R2: `npm run test:storage`. Compilación y TypeScript: `npm run build`. Las pruebas de PostgreSQL usan PGlite; las de R2 comprueban comandos y firmas sin requerir credenciales reales. Diseño revisado previamente en 320 y 390 px para catálogo, ficha, login y administración, y en tablet de 768 px. Los formularios tienen campos de 16 px y los controles táctiles principales miden al menos 44 px.
+Pruebas PostgreSQL: `npm run test:postgres`. Pruebas de subida y lectura de imágenes Cloudinary: `npm run test:storage`. Compilación y TypeScript: `npm run build`. Las pruebas de PostgreSQL usan PGlite; las de Cloudinary comprueban peticiones y firmas sin requerir credenciales reales. Diseño revisado previamente en 320 y 390 px para catálogo, ficha, login y administración, y en tablet de 768 px. Los formularios tienen campos de 16 px y los controles táctiles principales miden al menos 44 px.

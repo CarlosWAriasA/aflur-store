@@ -1,5 +1,5 @@
 import {isAdmin,sameOrigin} from '../../../server';
-import {imageStorage} from '../../../../lib/r2.mjs';
+import {imageStorage} from '../../../../lib/cloudinary.mjs';
 import {imageKey} from '../../../../lib/image-format.mjs';
 import {z} from 'zod';
 export const runtime='nodejs';
@@ -9,5 +9,5 @@ export async function POST(request:Request){
  try{
   const {key}=z.object({key:z.string().regex(imageKey)}).parse(await request.json());
   return Response.json({url:await imageStorage().completeUpload(key)},{headers:{'Cache-Control':'no-store'}});
- }catch(error){return Response.json({error:error instanceof z.ZodError?'Imagen inválida.':'No se pudo verificar la foto. Revisa el formato, el tamaño y la configuración de R2.'},{status:error instanceof z.ZodError?400:503});}
+ }catch(error){return Response.json({error:error instanceof z.ZodError?'Imagen inválida.':'No se pudo verificar la foto. Revisa el formato, el tamaño y la configuración de Cloudinary.'},{status:error instanceof z.ZodError?400:503});}
 }

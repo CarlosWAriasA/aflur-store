@@ -19,8 +19,6 @@
     "test:storage": "node --test tests/storage.test.mjs"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1149.0",
-    "@aws-sdk/s3-request-presigner": "^3.1149.0",
     "@base-ui/react": "^1.7.0",
     "@hookform/resolvers": "^5.7.1",
     "@neondatabase/serverless": "^1.2.0",

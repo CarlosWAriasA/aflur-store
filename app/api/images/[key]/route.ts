@@ -1,4 +1,4 @@
-import {imageStorage} from '../../../../lib/r2.mjs';
+import {imageStorage} from '../../../../lib/cloudinary.mjs';
 import {imageKey} from '../../../../lib/image-format.mjs';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';

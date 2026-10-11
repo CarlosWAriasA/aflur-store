@@ -1,4 +1,4 @@
-# PostgreSQL en Neon y fotos en R2
+# PostgreSQL en Neon y fotos en Cloudinary
 
 La integración está implementada. La conexión real requiere un proyecto Neon y su `DATABASE_URL` privada. No hay una cuenta ni una conexión Neon incluida en el código.
 
@@ -8,18 +8,18 @@ La integración está implementada. La conexión real requiere un proyecto Neon 
 2. En `.env.local`, dentro de la aplicación, agrega `DATABASE_URL="<cadena de conexión de Neon>"`. Este archivo está excluido de Git. También puedes proporcionar la variable directamente al proceso.
 3. Ejecuta `node scripts/migrate-neon.mjs`. Aplica las migraciones de `postgres/` en transacciones, registra sus checksums y verifica las tablas. Puede repetirse; no modifica migraciones ya aplicadas.
 4. Crea una cuenta autorizada con `node scripts/create-neon-user.mjs admin admin`. Genera una contraseña aleatoria y la guarda en `.sites-runtime/neon-admin.txt`, excluido de Git. No sobrescribe usuarios. Alternativamente, para conservar las cuentas de la vista previa, ejecuta `node scripts/import-local-to-neon.mjs --local` después de migrar.
-5. Configura **DATABASE_URL como variable privada de producción** en Vercel y vuelve a desplegar. Las claves del servidor no deben tener el prefijo `NEXT_PUBLIC_`. Configura también R2 según [VERCEL.md](VERCEL.md).
+5. Configura **DATABASE_URL como variable privada de producción** en Vercel y vuelve a desplegar. Las claves del servidor no deben tener el prefijo `NEXT_PUBLIC_`. Configura también Cloudinary según [VERCEL.md](VERCEL.md).
 6. Comprueba el catálogo, el login, un producto real con varias fotos y la recuperación después de recargar. Los usuarios de Neon se comparten entre todas las instancias que utilicen la misma conexión.
 
 En Vercel, Neon es la base de datos de la aplicación. Sin `DATABASE_URL`, solo se muestran las referencias iniciales de Instagram y la administración no está disponible. Ante un fallo de Neon, la aplicación muestra un error y nunca cambia a otra base automáticamente. El adaptador y las migraciones históricas de D1 se conservan para importar datos de la versión anterior.
 
 ## Datos y migración
 
-Neon almacena `products` (datos JSONB y fecha), `product_images` (producto, orden y clave R2), `settings`, `users`, `sessions` y `login_attempts`. Las operaciones sobre un producto y sus fotos son transacciones. Los archivos siguen en R2; la foto en posición 0 es la portada. Los hashes existentes de contraseñas son compatibles y no requieren conocer las contraseñas originales.
+Neon almacena `products` (datos JSONB y fecha), `product_images` (producto, orden y clave de imagen), `settings`, `users`, `sessions` y `login_attempts`. Las operaciones sobre un producto y sus fotos son transacciones. Los archivos se guardan en Cloudinary; la foto en posición 0 es la portada. Los hashes existentes de contraseñas son compatibles y no requieren conocer las contraseñas originales.
 
 Las migraciones históricas de D1 en `drizzle/` se conservan sin modificaciones. Las nuevas migraciones PostgreSQL se generan en `postgres/` con `node node_modules/drizzle-kit/bin.cjs generate` y se aplican con el script anterior. No ejecutar esas migraciones en D1.
 
-La importación local no sobrescribe filas existentes en Neon ni copia sesiones o intentos de login. Los archivos R2 locales no son los archivos R2 de producción: las fotos creadas en la vista previa deben volver a subirse para publicarlas. Para migrar inventario real ya publicado, exporta sus productos y ajustes de D1 de producción y conserva sus claves R2 de producción; no uses el inventario local como sustituto.
+La importación local no sobrescribe filas existentes en Neon ni copia sesiones o intentos de login. Las fotos locales o de R2 no se migran a Cloudinary automáticamente: deben volver a subirse. Para migrar inventario real ya publicado, exporta sus productos y ajustes de D1 de producción y transfiere sus fotos al almacenamiento actual; no uses el inventario local como sustituto.
 
 ## Verificación
 

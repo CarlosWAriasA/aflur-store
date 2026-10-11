@@ -1,5 +1,5 @@
 import {isAdmin,sameOrigin} from '../../server';
-import {imageStorage} from '../../../lib/r2.mjs';
+import {imageStorage} from '../../../lib/cloudinary.mjs';
 import {imageTypes,maxImageBytes} from '../../../lib/image-format.mjs';
 import {z} from 'zod';
 export const runtime='nodejs';
@@ -10,7 +10,7 @@ export async function POST(request:Request){
  try{
   const {contentType,size}=input.parse(await request.json());
   const key=crypto.randomUUID()+'.'+imageTypes[contentType];
-  const uploadUrl=await imageStorage().signUpload(key,contentType,size);
-  return Response.json({key,uploadUrl},{headers:{'Cache-Control':'no-store'}});
- }catch(error){return Response.json({error:error instanceof z.ZodError?'Selecciona una imagen JPG, PNG o WebP de hasta 5 MB.':'No se pudo preparar la subida. Comprueba la configuración de R2.'},{status:error instanceof z.ZodError?400:503});}
+  const upload=await imageStorage().signUpload(key,contentType,size);
+  return Response.json({key,...upload},{headers:{'Cache-Control':'no-store'}});
+ }catch(error){return Response.json({error:error instanceof z.ZodError?'Selecciona una imagen JPG, PNG o WebP de hasta 5 MB.':'No se pudo preparar la subida. Comprueba la configuración de Cloudinary.'},{status:error instanceof z.ZodError?400:503});}
 }

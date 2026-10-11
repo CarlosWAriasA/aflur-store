@@ -1,59 +1,61 @@
 # Publicar Aflur Store en Vercel
 
-El proyecto usa Next.js con ejecución Node.js. `npm run build` genera `.next`, incluido `routes-manifest.json`. La configuración anterior de Vinext generaba `dist`, lo que causaba el error de la captura.
+La aplicación usa Next.js y ejecuta su backend como funciones Node.js en Vercel. No requiere un servidor adicional. Neon conserva los productos, usuarios y sesiones; Cloudinary conserva y entrega las fotos.
 
 ## Proyecto
 
-Importa `CarlosWAriasA/aflur-store`, rama `main`. En **Settings > Build and Deployment** selecciona:
+Importa `CarlosWAriasA/aflur-store`, rama `main`.
 
 - Framework Preset: **Next.js**.
-- Root Directory: raíz del repositorio (vacío o `.`). GitHub ya contiene la aplicación en la raíz; no uses `web`.
+- Root Directory: raíz del repositorio (vacío o `.`). No uses `web`.
 - Build Command: `npm run build`.
 - Output Directory: `.next`.
 - Install Command: `npm ci`.
 - Node.js: **22.x**.
 
-`vercel.json` contiene los valores de compilación. El push a `main` debe disparar el despliegue si la integración GitHub está habilitada. Para repetir uno manualmente, usa **Redeploy** después de guardar las variables.
+`vercel.json` incluye la configuración. El push a `main` dispara el despliegue con la integración de GitHub. Después de cambiar variables, vuelve a desplegar con **Redeploy**.
 
-## Variables privadas
+## Variables en Vercel
 
-En **Settings > Environment Variables**, agrega estas variables para Production y los entornos de Preview que vayas a usar:
+En **Settings > Environment Variables**, agrega para **Production** y los entornos Preview que necesites:
 
 | Variable | Valor |
 | --- | --- |
-| `DATABASE_URL` | Cadena PostgreSQL del botón Connect de Neon, con SSL |
-| `R2_ACCOUNT_ID` | Account ID de Cloudflare |
-| `R2_ACCESS_KEY_ID` | Access Key ID de un token S3 de R2 |
-| `R2_SECRET_ACCESS_KEY` | Secret Access Key del mismo token |
-| `R2_BUCKET_NAME` | Nombre del bucket de fotos |
+| `DATABASE_URL` | Cadena PostgreSQL de Neon, con SSL |
+| `CLOUDINARY_CLOUD_NAME` | Cloud name del entorno de Cloudinary |
+| `CLOUDINARY_API_KEY` | API Key del mismo entorno |
+| `CLOUDINARY_API_SECRET` | API Secret del mismo entorno |
 
-Nunca uses `NEXT_PUBLIC_` para estas variables. Para desarrollo, copia `.env.example` a `.env.local` y completa los valores allí. No subas ese archivo a Git.
+Encuentra las credenciales en [Cloudinary Console](https://console.cloudinary.com/) > tu entorno de producto > **Settings > API Keys**. No compartas el API Secret ni le pongas el prefijo `NEXT_PUBLIC_`. Para desarrollo, copia `.env.example` a `.env.local` y completa los valores allí. Ese archivo está excluido de Git.
 
-Sin `DATABASE_URL`, el catálogo muestra referencias visuales de Instagram con precio, tallas y disponibilidad por consultar. El administrador necesita la base real: aplica `npm run db:migrate` y luego `npm run db:create-user -- admin admin` desde una terminal que tenga `DATABASE_URL`. La contraseña generada se guarda en `.sites-runtime/neon-admin.txt`. Consulta [NEON.md](NEON.md).
+No se necesita bucket, token de R2, política CORS manual ni un preset unsigned. Las variables `R2_*` anteriores ya no se utilizan. Las fotos previamente guardadas en R2 no se transfieren automáticamente: deben subirse a Cloudinary. Las fotos iniciales de Instagram y el banner local siguen funcionando sin estas credenciales.
 
-## Imágenes en Cloudflare R2
+## Activar el administrador
 
-Crea un bucket privado y un token de API S3 con permiso **Object Read & Write** limitado a ese bucket. Las fotos se envían directamente desde el navegador a R2 con un enlace firmado de cinco minutos. El servidor valida tamaño y formato antes de publicarlas; Neon guarda la referencia, no los archivos. Las imágenes se muestran mediante enlaces temporales de lectura. El bucket no necesita acceso público.
+Con `DATABASE_URL` configurada en `.env.local` o en el entorno de la terminal, ejecuta:
 
-En la configuración **CORS** del bucket, permite el dominio real de la tienda. Ejemplo (sustituye el dominio antes de guardar):
-
-```json
-[
-  {
-    "AllowedOrigins": ["https://TU-DOMINIO.vercel.app", "http://localhost:3000"],
-    "AllowedMethods": ["PUT"],
-    "AllowedHeaders": ["Content-Type"],
-    "MaxAgeSeconds": 3600
-  }
-]
+```powershell
+npm run db:migrate
+node scripts/create-neon-user.mjs admin admin
 ```
 
-Agrega cada dominio de Preview que necesite subir imágenes. Configura una regla de ciclo de vida para eliminar objetos con prefijo `pending/` después de un día: limpia subidas abandonadas. Las fotos publicadas no usan ese prefijo. El límite sigue siendo ocho fotos por producto y 5 MB por foto. La subida directa evita el límite de 4.5 MB del cuerpo de las funciones de Vercel.
+El script crea una contraseña aleatoria en `.sites-runtime/neon-admin.txt`, excluido de Git. No sobrescribe una cuenta existente. Después configura la misma conexión Neon en Vercel, vuelve a desplegar y entra a `/admin`. Consulta [NEON.md](NEON.md).
 
-Si las fotos antiguas están en un bucket gestionado por otro alojamiento, estas variables deben apuntar al mismo bucket con credenciales válidas, o tendrás que transferirlas a uno propio. Las fotos locales no se transfieren automáticamente.
+Crear la base en Neon no aplica automáticamente las migraciones ni crea un administrador.
 
-## Comprobación después de activar
+## Subida y entrega de fotos
 
-Abre el catálogo desde un móvil, entra a `/admin`, guarda un producto con varias fotos y recarga la página. Comprueba portada, tallas, precio y enlace de WhatsApp. Una compilación correcta no verifica por sí sola las credenciales de Neon ni los permisos y CORS de R2.
+1. La administración pide una autorización a `/api/upload`. Vercel comprueba la sesión y el origen, valida el tipo y el tamaño declarado y firma un identificador aleatorio. El API Secret se queda en el servidor.
+2. El navegador envía el archivo directamente a la API de Cloudinary con la firma. Solo se admiten JPG, PNG o WebP; se impide sobrescribir el identificador. Cloudinary verifica el formato real.
+3. `/api/upload/complete` consulta los metadatos directamente en Cloudinary y verifica el identificador, tipo de recurso, formato, dimensiones y tamaño real. Si excede 5 MB o no corresponde al formato esperado, se elimina y no se añade al producto.
+4. Neon guarda referencias estables `/api/images/<clave>`. Esa ruta redirige a la CDN de Cloudinary con formato y calidad automáticos y un ancho máximo de 1600 px. Los archivos no pasan por las funciones de Vercel.
 
-Referencias: [Next.js en Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs), [límites de funciones](https://vercel.com/docs/functions/limitations), [R2 con AWS SDK](https://developers.cloudflare.com/r2/examples/aws/aws-sdk-js-v3/), [enlaces firmados y CORS](https://developers.cloudflare.com/r2/api/s3/presigned-urls/).
+El límite es ocho fotos por producto y 5 MB por foto. Una foto subida pero no guardada en ningún producto permanece en Cloudinary; puede eliminarse desde su Media Library. Borrar un producto retira sus referencias en Neon, pero no borra automáticamente sus archivos de Cloudinary, para no eliminar fotos que otro producto pueda utilizar.
+
+## Verificar
+
+Ejecuta `npm run build`, `npm run test:storage` y `npm run test:postgres`. Las pruebas de almacenamiento simulan Cloudinary y verifican las firmas, validación y URLs sin credenciales reales. Después de activar las credenciales, prueba con un producto real y varias fotos desde el móvil, recarga el catálogo y comprueba el visor de pantalla completa.
+
+Sin conexión Neon, el catálogo muestra referencias iniciales de Instagram con precio y tallas por consultar. La administración necesita Neon. Una compilación correcta no verifica las credenciales reales de Cloudinary o Neon.
+
+Referencias: [Next.js en Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs), [subidas Cloudinary](https://cloudinary.com/documentation/upload_images), [firmas](https://cloudinary.com/documentation/signatures), [Upload API](https://cloudinary.com/documentation/image_upload_api_reference).

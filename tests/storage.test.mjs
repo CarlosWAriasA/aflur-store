@@ -1,67 +1,77 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {S3Client} from '@aws-sdk/client-s3';
-import {createStorage} from '../lib/r2.mjs';
+import {createHash} from 'node:crypto';
+import {createStorage,cloudinarySignature} from '../lib/cloudinary.mjs';
 import {maxImageBytes} from '../lib/image-format.mjs';
 
 const key='12345678-1234-1234-1234-123456789abc.png';
-const png=Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,0]);
-function fixture(head={},bytes=png){
- const commands=[];
- const client={async send(command){commands.push(command);switch(command.constructor.name){
-  case 'HeadObjectCommand':return {ContentLength:12,ContentType:'image/png',ETag:'"version-one"',...head};
-  case 'GetObjectCommand':return {Body:{async transformToByteArray(){return bytes;}}};
-  default:return {};
- }}};
- return {commands,storage:createStorage(client,'photos',async(_client,command,options)=>({command,options}))};
+const id='aflur/products/12345678-1234-1234-1234-123456789abc';
+const credentials={cloudName:'test-cloud',apiKey:'test-api-key',apiSecret:'test-secret'};
+function fixture(overrides={},status=200){
+ const calls=[];
+ const storage=createStorage(credentials,async(url,options)=>{
+  calls.push({url,options});
+  return Response.json(url.endsWith('/destroy')?{result:'ok'}:{public_id:id,resource_type:'image',type:'upload',bytes:1000,format:'png',width:800,height:1000,...overrides},{status});
+ },()=>1700000000000);
+ return {storage,calls};
 }
-test('uploads are limited to a temporary key, MIME type and five MB',async()=>{
+test('signature follows the sorted Cloudinary SHA-256 contract',()=>{
+ const parameters={version:1315060510,public_id:'sample'};
+ const expected=createHash('sha256').update('public_id=sample&version=1315060510abcd').digest('hex');
+ assert.equal(cloudinarySignature(parameters,'abcd'),expected);
+ assert.notEqual(cloudinarySignature({...parameters,public_id:'other'},'abcd'),expected);
+});
+test('upload signature binds a unique image ID, format, no-overwrite and timestamp without exposing the secret',async()=>{
  const {storage}=fixture();
- const result=await storage.signUpload(key,'image/png',maxImageBytes);
- assert.equal(result.command.input.Key,`pending/${key}`);
- assert.equal(result.command.input.ContentLength,maxImageBytes);
- assert.equal(result.options.expiresIn,300);
- assert.deepEqual([...result.options.signableHeaders],['content-type','content-length']);
- await assert.rejects(storage.signUpload(key,'image/png',maxImageBytes+1));
- await assert.rejects(storage.signUpload(key,'text/html',12));
- await assert.rejects(storage.signUpload('../image.png','image/png',12));
+ const upload=await storage.signUpload(key,'image/png',maxImageBytes);
+ assert.equal(upload.uploadUrl,'https://api.cloudinary.com/v1_1/test-cloud/image/upload');
+ const {signature,api_key,...parameters}=upload.fields;
+ assert.equal(api_key,credentials.apiKey);
+ assert.equal(parameters.public_id,id);
+ assert.equal(parameters.overwrite,'false');
+ assert.equal(parameters.allowed_formats,'png');
+ assert.equal(parameters.type,'upload');
+ assert.equal(parameters.timestamp,1700000000);
+ assert.equal(signature,cloudinarySignature(parameters,credentials.apiSecret));
+ assert.equal(JSON.stringify(upload).includes(credentials.apiSecret),false);
+ for(const [candidate,type,size] of [[key,'image/png',maxImageBytes+1],[key,'image/png',0],[key,'image/jpeg',100],[key,'text/html',100],['../private.png','image/png',100]])await assert.rejects(storage.signUpload(candidate,type,size));
 });
-test('publishing validates bytes and conditionally copies the same object version',async()=>{
- const {storage,commands}=fixture();
- assert.equal(await storage.completeUpload(key),`/api/images/${key}`);
- const read=commands.find(c=>c.constructor.name==='GetObjectCommand');
- assert.equal(read.input.Range,'bytes=0-11');
- assert.equal(read.input.IfMatch,'"version-one"');
- const copy=commands.find(c=>c.constructor.name==='CopyObjectCommand');
- assert.equal(copy.input.Key,key);
- assert.equal(copy.input.CopySource,`photos/pending/${key}`);
- assert.equal(copy.input.CopySourceIfMatch,'"version-one"');
- assert.equal(commands.at(-1).constructor.name,'DeleteObjectCommand');
+test('completion verifies metadata through a server-to-server signed request and returns a stable local image path',async()=>{
+ const {storage,calls}=fixture({secure_url:'https://attacker.example/untrusted'});
+ assert.equal(await storage.completeUpload(key),'/api/images/'+key);
+ assert.equal(calls.length,1);
+ assert.equal(calls[0].url,'https://api.cloudinary.com/v1_1/test-cloud/image/explicit');
+ const fields=Object.fromEntries(calls[0].options.body);
+ assert.equal(fields.public_id,id);
+ assert.equal(fields.type,'upload');
+ const {signature,api_key,...parameters}=fields;
+ assert.equal(signature,cloudinarySignature(parameters,credentials.apiSecret));
+ assert.equal(String(calls[0].options.body).includes(credentials.apiSecret),false);
 });
-test('oversized, wrong type, unversioned and forged files are never published',async()=>{
- for(const [head,bytes] of [[{ContentLength:maxImageBytes+1},png],[{ContentType:'text/html'},png],[{ETag:undefined},png],[{},new TextEncoder().encode('<html>oops')]]){
-  const {storage,commands}=fixture(head,bytes);
+test('invalid stored size, format and dimensions are rejected and removed',async()=>{
+ for(const metadata of [{bytes:maxImageBytes+1},{bytes:0},{bytes:'1000'},{format:'svg'},{format:'jpg'},{width:0},{height:undefined}]){
+  const {storage,calls}=fixture(metadata);
   await assert.rejects(storage.completeUpload(key));
-  assert.equal(commands.some(c=>c.constructor.name==='CopyObjectCommand'),false);
-  assert.equal(commands.at(-1).constructor.name,'DeleteObjectCommand');
+  assert.equal(calls.length,2);
+  assert.ok(calls[1].url.endsWith('/destroy'));
+  assert.equal(calls[1].options.body.get('public_id'),id);
  }
 });
-test('reads use expiring signed GET URLs without making the bucket public',async()=>{
- const {storage}=fixture();
- const result=await storage.imageUrl(key);
- assert.equal(result.command.input.Key,key);
- assert.equal(result.options.expiresIn,900);
- await assert.rejects(storage.imageUrl('../private'));
+test('wrong identity, resource type, failed requests and invalid paths never succeed',async()=>{
+ for(const metadata of [{public_id:'another-store/private'},{resource_type:'raw'},{type:'private'}]){
+  const {storage,calls}=fixture(metadata);
+  await assert.rejects(storage.completeUpload(key));
+  assert.equal(calls.length,1); // Never destroy an unrelated asset.
+ }
+ const {storage,calls}=fixture({},401);
+ await assert.rejects(storage.completeUpload(key));
+ await assert.rejects(storage.completeUpload('../private'));
+ assert.equal(calls.length,1);
 });
-test('AWS signer includes size and type in the actual upload signature',async()=>{
- const client=new S3Client({region:'auto',endpoint:'https://example.r2.cloudflarestorage.com',credentials:{accessKeyId:'test-key',secretAccessKey:'test-secret'},requestChecksumCalculation:'WHEN_REQUIRED'});
- try{
-  const url=new URL(await createStorage(client,'photos').signUpload(key,'image/png',12));
-  assert.equal(url.hostname,'photos.example.r2.cloudflarestorage.com');
-  assert.equal(url.pathname,`/pending/${key}`);
-  const headers=url.searchParams.get('X-Amz-SignedHeaders').split(';');
-  assert.ok(headers.includes('content-type'));
-  assert.ok(headers.includes('content-length'));
-  assert.equal(url.searchParams.get('X-Amz-Expires'),'300');
- }finally{client.destroy();}
+test('delivery URLs stay in the configured cloud and fixed optimized image path',async()=>{
+ const {storage}=fixture();
+ assert.equal(await storage.imageUrl(key),`https://res.cloudinary.com/test-cloud/image/upload/f_auto,q_auto,c_limit,w_1600/${id}.png`);
+ await assert.rejects(storage.imageUrl('../secret'));
+ assert.throws(()=>createStorage({...credentials,cloudName:'evil.example/path'}));
+ assert.throws(()=>createStorage({...credentials,apiSecret:''}));
 });
