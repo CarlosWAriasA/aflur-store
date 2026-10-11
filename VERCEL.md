@@ -52,6 +52,8 @@ Crear la base en Neon no aplica automáticamente las migraciones ni crea un admi
 
 El límite es ocho fotos por producto y 5 MB por foto. Una foto subida pero no guardada en ningún producto permanece en Cloudinary; puede eliminarse desde su Media Library. Borrar un producto retira sus referencias en Neon, pero no borra automáticamente sus archivos de Cloudinary, para no eliminar fotos que otro producto pueda utilizar.
 
+El panel de administración muestra almacenamiento, datos enviados y créditos mediante la [Admin API de Cloudinary](https://cloudinary.com/documentation/admin_api#usage). Esta consulta requiere que la API Key tenga permiso de lectura de uso. Solo administradores autenticados pueden consultarla; las credenciales permanecen en el servidor. Las lecturas del proveedor se conservan durante cinco minutos y Cloudinary actualiza sus cifras periódicamente. El reporte incluye todo el entorno de Cloudinary, incluso archivos ajenos al catálogo. Solo se muestra capacidad restante cuando el proveedor devuelve un límite: los planes de créditos compartidos no tienen una cantidad fija de fotos disponibles. Un error al consultar estadísticas no bloquea la gestión del catálogo.
+
 ## Verificar
 
 Ejecuta `npm run build`, `npm run test:storage` y `npm run test:postgres`. Las pruebas de almacenamiento simulan Cloudinary y verifican las firmas, validación y URLs sin credenciales reales. Después de activar las credenciales, prueba con un producto real y varias fotos desde el móvil, recarga el catálogo y comprueba el visor de pantalla completa.
